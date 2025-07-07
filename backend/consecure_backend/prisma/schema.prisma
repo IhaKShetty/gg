@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model threat {
+  id                          Int     @id(map: "PK_20b60375c43f5500f1405311873") @default(autoincrement())
+  threat_category             String  @db.VarChar
+  iocs                        String?
+  threat_actor                String? @db.VarChar
+  attack_vector               String? @db.VarChar
+  geographical_location       String? @db.VarChar
+  sentiment_in_forums         Float?
+  severity_score              Int
+  predicted_threat_category   String? @db.VarChar
+  suggested_defense_mechanism String? @db.VarChar
+  risk_level_prediction       Int?
+  cleaned_threat_description  String
+  keyword_extraction          String?
+  named_entities_ner          String?
+  topic_modeling_labels       String? @db.VarChar
+  word_count                  Int?
+
+  @@index([severity_score], map: "IDX_00ac1e4a7c42b155c970f91cc7")
+  @@index([cleaned_threat_description], map: "IDX_6a481ac6bf4d2570199cf58f0d")
+}
+
+model threat_nlp_features {
+  id                         Int      @id @default(autoincrement())
+  threat_id                  Int?
+  cleaned_threat_description String?
+  keywords                   String[]
+  named_entities             String[]
+  topic_modeling_labels      String[]
+  word_count                 Int?
+  threats                    threats? @relation(fields: [threat_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model threats {
+  id                          Int                   @id @default(autoincrement())
+  threat_category             String
+  threat_actor                String?
+  attack_vector               String?
+  geographical_location       String?
+  sentiment_in_forums         Float?
+  severity_score              Int?
+  predicted_threat_category   String?
+  suggested_defense_mechanism String?
+  risk_level_prediction       Int?
+  iocs                        Json?
+  threat_nlp_features         threat_nlp_features[]
+}
